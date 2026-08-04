@@ -13,7 +13,7 @@ use Exception;
 class CustomerController extends Controller
 {
     // Fetch Data
-     public function index()
+    public function index()
     {
         try {
             return response()->json(Customer::orderBy('id', 'desc')->get(), 200);
@@ -53,7 +53,7 @@ class CustomerController extends Controller
 
             // Create User Login Record
             $user = User::create([
-                'customer_id' => $validated['customer_id'],                
+                'customer_id' => $validated['customer_id'],
                 'name' => $validated['customer_name'],
                 'email' => $validated['customer_email'],
                 'role' => $validated['role'],
@@ -78,4 +78,61 @@ class CustomerController extends Controller
             ], 500);
         }
     }
+    // public function update(Request $request, int $id)
+    // {
+    //     try {
+    //         $employee = Customer::find($id);
+
+    //         if (!$employee) {
+    //             return response()->json(['message' => 'Employee not found'], 404);
+    //         }
+
+    //         $validated = $request->validate([
+    //             'name'       => 'sometimes|required|string|max:255',
+    //             'role'       => 'sometimes|required|string|max:255',
+    //             'email'      => 'sometimes|required|email|unique:employees,email,'.$id,
+    //             'phone'      => 'sometimes|required|string|max:50',
+    //             'avatar_url' => 'nullable|string',
+    //             'status'     => 'sometimes|required|string|in:Active,On Leave,Resigned,Suspended',
+    //         ]);
+
+    //         $employee->update($validated);
+    //         return response()->json($employee, 200);
+
+    //     } catch (ValidationException $e) {
+    //         return response()->json([
+    //             'message' => 'Validation Error',
+    //             'errors'  => $e->errors()
+    //         ], 422);
+
+    //     } catch (Exception $e) {
+    //         return response()->json([
+    //             'message' => 'Server Error: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+
+    public function uploadcustomerimage(Request $request, $id)
+{
+    $request->validate([
+        'photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+    ]);
+
+    // Find existing customer
+    $customer = Customer::findOrFail($id);
+
+    // Store new image
+    $path = $request->file('photo')->store('customers', 'public');
+
+    // Update photo path
+    $customer->photo = $path;
+    $customer->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Customer photo updated successfully.',
+        'data' => $customer
+    ], 200);
+}
 }

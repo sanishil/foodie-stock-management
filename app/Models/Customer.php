@@ -18,6 +18,7 @@ class Customer extends Model
         'phone',
         'role',
         'password',
+        'photo',
     ];
      protected $hidden = [
         'password',

@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\KitchenStocks;
 
 
 Route::post('login', [LoginController::class, 'login']);
+Route::put('uploadcustomerimage/{id}', [CustomerController::class, 'uploadcustomerimage']);
 Route::apiResource('delivery', DeliveryController::class);
 Route::get('totalorders', [DeliveryController::class, 'totalOrder']);
 Route::get('orderhistory/{customer_id}', [DeliveryController::class, 'getDelivery']);//fatch the customer order history
