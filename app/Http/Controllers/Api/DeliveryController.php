@@ -34,14 +34,14 @@ class DeliveryController extends Controller
         }
     }
 
-    public function getDelivery($customer_id)
+    public function getDelivery(string $customer_id)
     {
         try {
             $delivery = Delivery::where('customer_id', $customer_id)
                 ->distinct()
                 ->get();
 
-            if (!$delivery) {
+            if ($delivery->isEmpty()) {
                 return response()->json([
                     'message' => 'Order not found'
                 ], 404);

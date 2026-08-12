@@ -15,15 +15,13 @@ class DashboardController extends Controller
     public function getAdminAnalytics()
     {
         try {
-            // 1. Total Earnings from Completed / Delivered items
-            $totalRevenue = Delivery::whereIn('status', ['Completed', 'Delivered'])->sum('amount') ?? 0;
-            if ($totalRevenue == 0) {
-                // Fallback agar field ka naam total_amount ho ya status different ho
-                $totalRevenue = Delivery::sum('amount') ?? Delivery::sum('total_amount') ?? 0;
-            }
+            // 1. All-Time Revenue & Today's Revenue
+            $totalRevenue = Delivery::sum('total') ?? 0;
+            $todaysRevenue = Delivery::whereDate('created_at', \Carbon\Carbon::today())->sum('total') ?? 0;
 
-            // 2. Total Orders Count
+            // 2. Total Orders & Today's Orders
             $totalOrders = Delivery::count();
+            $todaysOrders = Delivery::whereDate('created_at', \Carbon\Carbon::today())->count();
 
             // 3. Active Customers Count
             $activeCustomers = User::where('role', 'Customer')->count();
@@ -34,22 +32,28 @@ class DashboardController extends Controller
             // 4. Total Staff/Employees Count
             $totalStaff = User::where('role', '!=', 'customer')->count();
 
-            // 5. Recent 5 deliverys / Orders
-            $recentOrders = Delivery::latest()->take(5)->get()->map(function ($item) {
-                return [
-                    'id'       => 'ORD-' . $item->id,
-                    'customer' => $item->customer_name ?? $item->user?->name ?? 'Customer #' . $item->id,
-                    'amount'   => (float) ($item->amount ?? $item->total_amount ?? 0),
-                    'status'   => ucfirst($item->status ?? 'Pending'),
-                    'date'     => $item->created_at ? $item->created_at->format('Y-m-d') : date('Y-m-d')
-                ];
-            });
+            // 5. 🎯 Recent Orders (Sirf Aaj ke orders table ke liye)
+            $recentOrders = Delivery::whereDate('created_at', \Carbon\Carbon::today())
+                ->latest()
+                ->take(5)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'id'       => $item->order_number ?? ('ORD-' . $item->id),
+                        'customer' => $item->customer_name ?? 'Customer',
+                        'amount'   => (float) ($item->total ?? 0),
+                        'status'   => ucfirst($item->status ?? 'Pending'),
+                        'date'     => $item->created_at ? $item->created_at->format('Y-m-d') : date('Y-m-d')
+                    ];
+                });
 
             return response()->json([
-                'totalRevenue'    => $totalRevenue,
-                'totalOrders'     => $totalOrders,
-                'activeCustomers' => $activeCustomers,
-                'totalStaff'      => $totalStaff,
+                'totalRevenue'    => (float) $totalRevenue,
+                'todaysRevenue'   => (float) $todaysRevenue,
+                'totalOrders'     => (int) $totalOrders,
+                'todaysOrders'    => (int) $todaysOrders,
+                'activeCustomers' => (int) $activeCustomers,
+                'totalStaff'      => (int) $totalStaff,
                 'recentOrders'    => $recentOrders
             ], 200);
 

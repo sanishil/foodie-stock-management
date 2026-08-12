@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Customer extends Model
 {
-     use HasFactory;
+    use HasFactory;
 
     protected $table = 'customers';
 
@@ -19,8 +19,11 @@ class Customer extends Model
         'role',
         'password',
         'photo',
+        'address',
+        'membership',
     ];
-     protected $hidden = [
+
+    protected $hidden = [
         'password',
     ];
 }
